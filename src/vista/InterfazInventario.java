@@ -296,7 +296,6 @@ public class InterfazInventario extends javax.swing.JDialog {
         jLabel7 = new javax.swing.JLabel();
 
         EditarPedido.setModal(true);
-        EditarPedido.setPreferredSize(new java.awt.Dimension(430, 350));
         EditarPedido.setResizable(false);
         EditarPedido.setSize(new java.awt.Dimension(440, 400));
 
@@ -482,7 +481,6 @@ public class InterfazInventario extends javax.swing.JDialog {
         );
 
         AgregarProducto.setModal(true);
-        AgregarProducto.setPreferredSize(new java.awt.Dimension(408, 488));
         AgregarProducto.setResizable(false);
         AgregarProducto.setSize(new java.awt.Dimension(426, 528));
 
@@ -1576,6 +1574,12 @@ public class InterfazInventario extends javax.swing.JDialog {
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
         try{
         Producto pe = modTabProducto.getProducto(lproductos.getSelectedRow());
+        inventarios= cInventario.findInventarioEntities();
+        int can=0;
+        for(Inventario inv: inventarios)
+            if(inv.getIdProducto().getIdProducto()==pe.getIdProducto())
+                can++;
+        if(!(can>0)){
         Confirmacion.setVisible(true);
         if(confirmacion){
             int id_e = pe.getIdProducto();
@@ -1595,6 +1599,9 @@ public class InterfazInventario extends javax.swing.JDialog {
             for(Producto pr:productos)
                 productos_s.add(pr);
         }
+        }
+        else
+            JOptionPane.showMessageDialog(this,"Existen productos con esta referencia en inventario, elimine primero en inventario");
         }catch(Exception e){
             JOptionPane.showMessageDialog(this,"Seleccione una fila de la tabla");
         }
