@@ -23,6 +23,12 @@ public class DatosTablaInventario {
     public String getUbicacion(){
         return inventario.getUbicacion();
     }
+    public String getTalla(){
+        return inventario.getTalla();
+    }
+    public String getColor(){
+        return inventario.getColor();
+    }
     public int getCantidad(){
         return inventario.getCantidadActual();
     }
