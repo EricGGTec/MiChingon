@@ -4,6 +4,7 @@
  */
 package vista;
 
+import control.AdnDatos;
 import control.ClienteJpaController;
 import control.DetallePedidoJpaController;
 import control.InventarioJpaController;
@@ -52,6 +53,7 @@ public class InterfazPed extends javax.swing.JDialog {
     /**
      * Creates new form InterfazPed
      */
+    private AdnDatos adn;
     private EntityManagerFactory emf;
     private PedidoJpaController cPedido;
     private DetallePedidoJpaController cDetalleP;
@@ -69,6 +71,9 @@ public class InterfazPed extends javax.swing.JDialog {
     private List<UbicacionPedido> ubicaciones;
     private List<Proveedor> proveedores;
     private List<Pedido> pedidosUbi = new ArrayList<>();
+    private List<Producto> productosInv = new ArrayList<>();
+
+    private Map<String, Inventario> inventario_index = new HashMap<>();
 
     private Pedido pbusqueda;
     private boolean banderaEncontrado = false;
@@ -83,7 +88,9 @@ public class InterfazPed extends javax.swing.JDialog {
     private SimpleDateFormat formato = new SimpleDateFormat("dd 'de' MMM 'de' yyy ");
     private boolean confirmaFecha = false;
     //combos cargar registraR
-    private int selecPro = 0;
+    private Inventario selecPro;
+    private String selecTa = "";
+    private String selecCo = "";
     private SpinnerNumberModel Msp = new SpinnerNumberModel(1, 1, 1, 1);
     //generar total
     private float acumulaTotal = 0;
@@ -105,15 +112,16 @@ public class InterfazPed extends javax.swing.JDialog {
     public InterfazPed(java.awt.Frame parent, boolean modal) throws Exception {
         super(parent, modal);
         initComponents();
+        adn = new AdnDatos();
         emf = Persistence.createEntityManagerFactory("MiChingonPU");
         EntityManagerFactory emf2 = Persistence.createEntityManagerFactory("MiChingonPU");
-        cPedido = new PedidoJpaController(emf);
-        cDetalleP = new DetallePedidoJpaController(emf);
-        cCliente = new ClienteJpaController(emf);
-        cProducto = new ProductoJpaController(emf);
-        cInventario = new InventarioJpaController(emf);
-        cUbicacionP = new UbicacionPedidoJpaController(emf);
-        cProveedor = new ProveedorJpaController(emf);
+        cPedido = new PedidoJpaController(adn.getEnf());
+        cDetalleP = new DetallePedidoJpaController(adn.getEnf());
+        cCliente = new ClienteJpaController(adn.getEnf());
+        cProducto = new ProductoJpaController(adn.getEnf());
+        cInventario = new InventarioJpaController(adn.getEnf());
+        cUbicacionP = new UbicacionPedidoJpaController(adn.getEnf());
+        cProveedor = new ProveedorJpaController(adn.getEnf());
 
         clientes = cCliente.findClienteEntities();
         productos = cProducto.findProductoEntities();
@@ -125,7 +133,7 @@ public class InterfazPed extends javax.swing.JDialog {
         mt = new DefaultTableModel(new Object[]{"Id Pedido", "Cliente", "Fecha de entrega", "Productos", "Estado", "Total"}, 0);
         mtU = new DefaultTableModel(new Object[]{"Id Pedido", "Cliente", "Ubicacion", "Proveedor", "Fecha estimada de entrega"}, 0);
         tUbi.setModel(mtU);
-
+        cargarProductoCB();
         pedidos = cPedido.findPedidoEntities();
         cantidadSP.setModel(Msp);
         cargarPedidos();
@@ -135,13 +143,41 @@ public class InterfazPed extends javax.swing.JDialog {
         Bcancelar.setEnabled(false);
         cargarCB();
         cargarCBubi();
+        productosInvt();
+
+    }
+
+    private void cargarProductoCB() {
+        productoCB.removeAllItems();
+        inventario_index.clear();
+        inventario = cInventario.findInventarioEntities();
+        int nc = 0;
+        for (Inventario ivn : inventario) {
+            inventario_index.put(ivn.getIdProducto().getNombre() + " Talla:" + ivn.getTalla() + " Color:" + ivn.getColor(), ivn);
+            productoCB.addItem(ivn.getIdProducto().getNombre() + " Talla:" + ivn.getTalla() + " Color:" + ivn.getColor());
+        }
+    }
+
+    private void productosInvt() {
+        productosInv.clear();
+        productos = cProducto.findProductoEntities();
+        for (Producto p : productos) {//agregar solo los que estan en inven
+
+            if (buscaInventario(p) != null) {
+                productosInv.add(p);
+                System.out.println("cargar" + p.getNombre());
+            }
+            System.out.println("productos en inventario actualizado");
+        }
+        //inventario = cInventario.findInventarioEntities();
+        //for(Inventario inv:inventario)
 
     }
 
     public void cargarPedidos() throws Exception {
         pedidos = cPedido.findPedidoEntities();
         int numfilas = mt.getRowCount();
-        for (int i = 0; i < numfilas; i++) {
+        for (int i = numfilas - 1; i >= 0; i--) {
             mt.removeRow(i);
         }
         if (banderaEncontrado) {
@@ -180,27 +216,20 @@ public class InterfazPed extends javax.swing.JDialog {
         clientes = cCliente.findClienteEntities();
         productos = cProducto.findProductoEntities();
 
-        colorCB.removeAllItems();
         clienteCB.removeAllItems();
         productoCB.removeAllItems();
-        tallaCB.removeAllItems();
 
         clienteCB.addItem("Selecciona cliente");
         productoCB.addItem("Selecciona producto");
-        colorCB.addItem("Selecciona color");
-        tallaCB.addItem("Selecciona talla");
+        cantidadSP.setValue(0);
 
         for (Cliente c : clientes) {
             clienteCB.addItem(c.getNombre() + " " + c.getApellido());
         }
-        for (Producto p : productos) {//agregar solo los que estan en inven
-            Inventario prueba = buscaInventario(p);
-            if (prueba != null) {
-                productoCB.addItem("id: " + p.getIdProducto() + " -- " + p.getNombre());
-            }
-
-        }
-        cantidadSP.setValue(0);
+        /*for (Producto p : productosInv) {//agregar solo los que estan en inven
+            productoCB.addItem("id: " + p.getIdProducto() + " -- " + p.getNombre());
+            
+        }*/
 
     }
 
@@ -267,6 +296,7 @@ public class InterfazPed extends javax.swing.JDialog {
                     encontrado = true;
                     break;
                 }
+
             }
 
             if (!encontrado) {
@@ -296,6 +326,7 @@ public class InterfazPed extends javax.swing.JDialog {
         BigDecimal totalTem;
         BigDecimal precioUnitario;
         detalles = cDetalleP.findDetallePedidoEntities();
+
         for (DetallePedido de : detalles) {
             if (de.getIdPedido().getIdPedido() == p.getIdPedido()) {
                 //calcular precio por cantidad de productos
@@ -315,7 +346,7 @@ public class InterfazPed extends javax.swing.JDialog {
     private Inventario buscaInventario(Producto p) {
         inventario = cInventario.findInventarioEntities();
         for (Inventario in : inventario) {
-            System.out.println("ID INVENTARIO" + in.getIdInventario());
+            System.out.println("buscando en inventario, reg " + in.getIdInventario());
             if (in.getIdProducto().getIdProducto() == p.getIdProducto()) {
                 return in;
             }
@@ -325,23 +356,14 @@ public class InterfazPed extends javax.swing.JDialog {
 
     private String buscaProductosMuestra(Pedido p) throws Exception {
         String listaP = "";
-        float precioP = 0;
-        float totalPedido = 0;
-        BigDecimal totalTem;
-        BigDecimal precioUnitario;
-        detalles = cDetalleP.findDetallePedidoEntities();
+
+        /*detalles = cDetalleP.findDetallePedidoEntities();
         for (DetallePedido de : detalles) {
             if (de.getIdPedido().getIdPedido() == p.getIdPedido()) {
                 //calcular precio por cantidad de productos
-                precioUnitario = new BigDecimal(de.getCantidad());
-                totalTem = precioUnitario.multiply(de.getIdProducto().getPrecio());
-                precioP = totalTem.floatValue();
-                totalPedido += precioP;
                 listaP += "Producto: " + de.getIdProducto().getNombre();
             }
-        }
-        //guardar total en pedido
-
+        }*/
         return listaP;
     }
 
@@ -353,7 +375,7 @@ public class InterfazPed extends javax.swing.JDialog {
         jButton7 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        panelesPedido = new javax.swing.JTabbedPane();
         jPanel3 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         txtResult = new javax.swing.JLabel();
@@ -373,7 +395,6 @@ public class InterfazPed extends javax.swing.JDialog {
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jLabel10 = new javax.swing.JLabel();
@@ -381,11 +402,8 @@ public class InterfazPed extends javax.swing.JDialog {
         calendarioSelec = new com.toedter.calendar.JCalendar();
         Bconfi = new javax.swing.JButton();
         textFecha = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        colorCB = new javax.swing.JComboBox<>();
         clienteCB = new javax.swing.JComboBox<>();
         productoCB = new javax.swing.JComboBox<>();
-        tallaCB = new javax.swing.JComboBox<>();
         jLabel7 = new javax.swing.JLabel();
         cantidadSP = new javax.swing.JSpinner();
         jLabel15 = new javax.swing.JLabel();
@@ -399,7 +417,7 @@ public class InterfazPed extends javax.swing.JDialog {
         textInfo = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         tUbi = new javax.swing.JTable();
-        jTabbedPane2 = new javax.swing.JTabbedPane();
+        panelEA = new javax.swing.JTabbedPane();
         jPanel5 = new javax.swing.JPanel();
         jLabel14 = new javax.swing.JLabel();
         jLabel16 = new javax.swing.JLabel();
@@ -444,12 +462,24 @@ public class InterfazPed extends javax.swing.JDialog {
             .addGap(0, 0, Short.MAX_VALUE)
         );
 
+        panelesPedido.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                panelesPedidoStateChanged(evt);
+            }
+        });
+
         jLabel2.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel2.setText("Codigo del pedido:");
 
         txtResult.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         txtResult.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         txtResult.setText("Resultados");
+
+        TextIdP.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                TextIdPActionPerformed(evt);
+            }
+        });
 
         bBuscar.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         bBuscar.setText("Buscar");
@@ -513,6 +543,11 @@ public class InterfazPed extends javax.swing.JDialog {
 
         jButton4.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jButton4.setText("Actualizar tabla");
+        jButton4.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton4MouseClicked(evt);
+            }
+        });
         jButton4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton4ActionPerformed(evt);
@@ -593,7 +628,7 @@ public class InterfazPed extends javax.swing.JDialog {
                 .addGap(65, 65, 65))
         );
 
-        jTabbedPane1.addTab("Busqueda", jPanel3);
+        panelesPedido.addTab("Busqueda", jPanel3);
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 3, 14)); // NOI18N
         jLabel4.setText("Registrar pedido");
@@ -603,9 +638,6 @@ public class InterfazPed extends javax.swing.JDialog {
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel6.setText("Producto:");
-
-        jLabel8.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
-        jLabel8.setText("Talla:");
 
         jButton2.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jButton2.setText("Agregar a pedido");
@@ -653,11 +685,6 @@ public class InterfazPed extends javax.swing.JDialog {
 
         textFecha.setText("Fecha:");
 
-        jLabel3.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
-        jLabel3.setText("Color:");
-
-        colorCB.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
         clienteCB.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         clienteCB.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -672,10 +699,14 @@ public class InterfazPed extends javax.swing.JDialog {
             }
         });
 
-        tallaCB.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
         jLabel7.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel7.setText("Cantidad: ");
+
+        cantidadSP.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                cantidadSPStateChanged(evt);
+            }
+        });
 
         jLabel15.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel15.setText("Precio individual:");
@@ -695,32 +726,26 @@ public class InterfazPed extends javax.swing.JDialog {
                                 .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(65, 65, 65)
                                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(67, 67, 67)
+                                .addGap(28, 28, 28)
                                 .addComponent(textTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(131, 131, 131)
                                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(tallaCB, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(clienteCB, javax.swing.GroupLayout.PREFERRED_SIZE, 301, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(productoCB, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(248, 248, 248)
+                                    .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel7))
                                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(jLabel7)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(cantidadSP, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGap(28, 28, 28)
+                                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(clienteCB, javax.swing.GroupLayout.PREFERRED_SIZE, 301, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(productoCB, javax.swing.GroupLayout.PREFERRED_SIZE, 361, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                     .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(29, 29, 29)
-                                        .addComponent(colorCB, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                        .addGap(0, 189, Short.MAX_VALUE))
+                                        .addGap(27, 27, 27)
+                                        .addComponent(cantidadSP, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                        .addGap(0, 236, Short.MAX_VALUE))
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(jLabel15, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -746,29 +771,21 @@ public class InterfazPed extends javax.swing.JDialog {
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addGap(27, 27, 27)
                 .addComponent(jLabel4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel5)
+                    .addComponent(clienteCB, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(32, 32, 32)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel6)
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addGap(5, 5, 5)
+                        .addComponent(productoCB, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(25, 25, 25)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 49, Short.MAX_VALUE)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel5)
-                            .addComponent(clienteCB, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(32, 32, 32)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(jLabel6)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel3)
-                                    .addComponent(colorCB, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGap(5, 5, 5)
-                                .addComponent(productoCB, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(tallaCB, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel8)
-                            .addComponent(jLabel7)
-                            .addComponent(cantidadSP, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(36, 36, 36)
+                        .addComponent(jLabel7)
+                        .addGap(38, 38, 38)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addComponent(jLabel15)
@@ -784,18 +801,18 @@ public class InterfazPed extends javax.swing.JDialog {
                                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(jLabel10)
                                     .addComponent(jButton5))))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 38, Short.MAX_VALUE)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(43, 43, 43))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(textTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(30, 30, 30))))
+                            .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(textTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(42, 42, 42))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(cantidadSP, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
 
-        jTabbedPane1.addTab("Registro", jPanel4);
+        panelesPedido.addTab("Registro", jPanel4);
 
         jLabel12.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel12.setText("Consultar la ubicacion del pedido");
@@ -834,6 +851,12 @@ public class InterfazPed extends javax.swing.JDialog {
             }
         });
         jScrollPane3.setViewportView(tUbi);
+
+        panelEA.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                panelEAStateChanged(evt);
+            }
+        });
 
         jLabel14.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel14.setText("Selecciona  un pedido en la tabla para editar la ubicacion");
@@ -931,21 +954,21 @@ public class InterfazPed extends javax.swing.JDialog {
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(proveCB1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 82, Short.MAX_VALUE)
                         .addComponent(BactualizarU, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(27, 27, 27)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel17)
-                            .addComponent(textFechaAcU, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap())
+                            .addComponent(textFechaAcU, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(calenE, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(Bcf1, javax.swing.GroupLayout.DEFAULT_SIZE, 69, Short.MAX_VALUE)
-                        .addGap(12, 12, 12))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(Bcf1, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
-        jTabbedPane2.addTab("Editar", jPanel5);
+        panelEA.addTab("Editar", jPanel5);
 
         jLabel18.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel18.setText("Pedido:");
@@ -1055,7 +1078,7 @@ public class InterfazPed extends javax.swing.JDialog {
                 .addContainerGap(22, Short.MAX_VALUE))
         );
 
-        jTabbedPane2.addTab("Agregar", jPanel6);
+        panelEA.addTab("Agregar", jPanel6);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -1075,7 +1098,7 @@ public class InterfazPed extends javax.swing.JDialog {
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 771, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(41, Short.MAX_VALUE))
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 795, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(panelEA, javax.swing.GroupLayout.PREFERRED_SIZE, 795, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -1097,11 +1120,11 @@ public class InterfazPed extends javax.swing.JDialog {
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jTabbedPane2)
+                .addComponent(panelEA)
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Localizacion", jPanel2);
+        panelesPedido.addTab("Localizacion", jPanel2);
 
         jButton8.setFont(new java.awt.Font("Segoe UI", 3, 14)); // NOI18N
         jButton8.setText("Salir");
@@ -1119,7 +1142,7 @@ public class InterfazPed extends javax.swing.JDialog {
                 .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 818, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(panelesPedido, javax.swing.GroupLayout.PREFERRED_SIZE, 818, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1141,7 +1164,7 @@ public class InterfazPed extends javax.swing.JDialog {
                             .addComponent(jLabel1)
                             .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
-                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 681, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(panelesPedido, javax.swing.GroupLayout.PREFERRED_SIZE, 681, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -1151,61 +1174,13 @@ public class InterfazPed extends javax.swing.JDialog {
 
     private void bBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bBuscarActionPerformed
         // TODO add your handling code here:
-        detallesText.setText("");
-        String idbusqueda = TextIdP.getText();
-        if (!idbusqueda.isEmpty()) {
-            pedidos = cPedido.findPedidoEntities();
-            for (Pedido p : pedidos) {
-                if (p.getIdPedido().toString().equals(idbusqueda)) {
-                    pbusqueda = p;
-                    banderaEncontrado = true;
-                    txtResult.setText("Resultados: Pedido encontrado");
-                    break;
-                } else {
-                    banderaEncontrado = false;
-                }
-
-            }
-            if (!banderaEncontrado) {
-                txtResult.setText(" Resultados: No se encontraron resultados");
-                try {
-                    cargarPedidos();
-
-                } catch (Exception ex) {
-                    Logger.getLogger(InterfazPed.class
-                            .getName()).log(Level.SEVERE, null, ex);
-                }
-            } else {
-                try {
-                    //se encontro
-                    cargarPedidos();
-                } catch (Exception ex) {
-                    Logger.getLogger(InterfazPed.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-
-        } else {
-            txtResult.setText(" Resultados: No se encontraron resultados");
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Ingresa un identificador",
-                    "Advertencia",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            try {
-                cargarPedidos();
-
-            } catch (Exception ex) {
-                Logger.getLogger(InterfazPed.class
-                        .getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
+        botonBP();
 
     }//GEN-LAST:event_bBuscarActionPerformed
 
     private void bBuscarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_bBuscarMouseClicked
         // TODO add your handling code here:
+        botonBP();
 
     }//GEN-LAST:event_bBuscarMouseClicked
 
@@ -1264,39 +1239,26 @@ public class InterfazPed extends javax.swing.JDialog {
     private void productoCBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productoCBActionPerformed
         // TODO add your handling code here:
         //cambiar talla, tipo y color segun producto
-        selecPro = productoCB.getSelectedIndex();
-        if (selecPro > 0) {//mostrar solo productos en inventario
-            colorCB.removeAllItems();
+        selecPro = (Inventario) inventario_index.get(productoCB.getSelectedItem());
+        //mostrar solo productos en inventario
+        /*colorCB.removeAllItems();
             tallaCB.removeAllItems();
-            System.out.println("seleccion de producto" + selecPro);
-            Producto seP = productos.get(selecPro - 1);
-            textPrecio.setText(" $" + seP.getPrecio());
-            String[] colores = colorInventario(seP); //metodo
-            if (colores != null) {
-                for (int i = 0; i < colores.length; i++) {
-                    colorCB.addItem(colores[i]);
-                }
-            }
 
+            Producto seP = productosInv.get(selecPro - 1);
+            System.out.println("producto sleciconadao" + seP.getNombre());
+            
             String tallas[] = tallasInventario(seP);//metodo talla
             if (tallas != null) {
                 for (int i = 0; i < tallas.length; i++) {
                     tallaCB.addItem(tallas[i]);
                 }
-            }
-            Inventario inven = buscaInventario(seP);
-            if (inven != null && inven.getCantidadActual() > 0) {
-                Msp.setMinimum(1);
-                Msp.setValue(1);
-                Msp.setMaximum(inven.getCantidadActual());
-                cantidadSP.setModel(Msp);
-            } else {//no esta registrado en inventario
-                Msp.setValue(0);
-                cantidadSP.setModel(Msp);
-            }
-        } else {
-            colorCB.removeAllItems();
-            colorCB.addItem("Selecciona color");
+            }*/
+        if (selecPro != null) {
+            textPrecio.setText(" $ " + selecPro.getIdProducto().getPrecio());
+            Msp.setMaximum(selecPro.getCantidadActual());
+            Msp.setMinimum(1);
+            Msp.setValue(1);
+            cantidadSP.setModel(Msp);
         }
     }//GEN-LAST:event_productoCBActionPerformed
 
@@ -1328,6 +1290,7 @@ public class InterfazPed extends javax.swing.JDialog {
         costoProductos = BigDecimal.ZERO;
         cargarCB();
         textTotal.setText("Total: $0");
+        textPrecio.setText("$");
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void BcancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BcancelarActionPerformed
@@ -1379,6 +1342,49 @@ public class InterfazPed extends javax.swing.JDialog {
         }
     }//GEN-LAST:event_BcancelarActionPerformed
 
+    private void botonBP() {
+        detallesText.setText("");
+        String idbusqueda = TextIdP.getText();
+        if (!idbusqueda.isEmpty() && esEntero(idbusqueda)) {
+            pedidos = cPedido.findPedidoEntities();
+            pbusqueda = cPedido.findPedido(Integer.parseInt(idbusqueda));
+
+            if (pbusqueda != null) {
+                banderaEncontrado = true;
+                txtResult.setText("Resultados: Pedido encontrado");
+            } else {
+                banderaEncontrado = false;
+            }
+
+            if (!banderaEncontrado) {
+                txtResult.setText(" Resultados: No se encontraron resultados");
+            }
+            try {
+                cargarPedidos();
+
+            } catch (Exception ex) {
+                Logger.getLogger(InterfazPed.class
+                        .getName()).log(Level.SEVERE, null, ex);
+            }
+
+        } else {
+            txtResult.setText(" Resultados: No se encontraron resultados");
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Ingresa un identificador",
+                    "Advertencia",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            try {
+                cargarPedidos();
+
+            } catch (Exception ex) {
+                Logger.getLogger(InterfazPed.class
+                        .getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+    }
     private void tPedidosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tPedidosMouseClicked
         // TODO add your handling code here:
         Bcancelar.setEnabled(true);
@@ -1460,58 +1466,53 @@ public class InterfazPed extends javax.swing.JDialog {
     private void BactualizarUActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BactualizarUActionPerformed
         // TODO add your handling code here:
         int ubiS = tUbi.getSelectedRow();
-        if (ubiS >= 0 && esEntero(mtU.getValueAt(ubiS, 0).toString())) {
-            if (ubiCB.getSelectedIndex() > 0 || proveCB1.getSelectedIndex() > 0 || conFub) {
+        if (ubiS >= 0) {
+            int cbS = ubiCB.getSelectedIndex();
+            if (cbS > 0 || proveCB1.getSelectedIndex() > 0 || conFub) {
                 int idPed = Integer.parseInt(mtU.getValueAt(ubiS, 0).toString());
                 Pedido ped = buscaPedidoTabla(idPed);
-                //guardar selccion del combo
-                int cbS = ubiCB.getSelectedIndex();
-                if (cbS > 0) {
-                    int resp = JOptionPane.showConfirmDialog(
-                            null,
-                            "¿Modificar la ubicacion del pedido?" + ped.getIdPedido() + " a " + ubiCB.getItemAt(cbS),
-                            "Aviso",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE
-                    );
-                    if (resp == JOptionPane.YES_OPTION) {
-                        UbicacionPedido encontradoU = buscarUbiPedidos(ped);
-                        try {
-                            if (cbS > 0) {
-                                String valorU = leeUbiSelec(cbS);
-                                encontradoU.setEstadoLogistica(valorU);
-                            }
-                            if (proveCB1.getSelectedIndex() > 0) {
-                                Proveedor prov = proveedores.get(proveCB1.getSelectedIndex() - 1);
-                                encontradoU.setIdProveedor(prov);
 
-                            }
-                            cUbicacionP.edit(encontradoU);
-                            System.out.println(encontradoU.getIdPedido().getIdPedido() + " modiicado  ");
-
-                            if (fechaE != null && conFub) {
-                                ped.setFechaEntregaEstimada(fechaE);
-                                cPedido.edit(ped);
-                                System.out.println("fecha entrega modifcada a " + fechaE);
-                            }
-
-                            cargarCBubi();
-                        } catch (Exception e) {
-                            System.out.println("ERROR al cambiar ubicacion");
+                int resp = JOptionPane.showConfirmDialog(
+                        null,
+                        "¿Modificar la ubicacion del pedido?" + ped.getIdPedido() + " a " + ubiCB.getItemAt(cbS),
+                        "Aviso",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE
+                );
+                if (resp == JOptionPane.YES_OPTION) {
+                    UbicacionPedido encontradoU = buscarUbiPedidos(ped);
+                    try {
+                        if (cbS > 0) {
+                            String valorU = leeUbiSelec(cbS);
+                            encontradoU.setEstadoLogistica(valorU);
                         }
-                    } else {
-                        JOptionPane.showMessageDialog(
-                                null,
-                                "Se cancelo el cambio",
-                                "Advertencia",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                        cargarCBubi();
+                        if (proveCB1.getSelectedIndex() > 0) {
+                            Proveedor prov = proveedores.get(proveCB1.getSelectedIndex() - 1);
+                            encontradoU.setIdProveedor(prov);
 
+                        }
+                        cUbicacionP.edit(encontradoU);
+                        System.out.println(encontradoU.getIdPedido().getIdPedido() + " modiicado  ");
+
+                        if (fechaE != null && conFub) {
+                            ped.setFechaEntregaEstimada(fechaE);
+                            cPedido.edit(ped);
+                            System.out.println("fecha entrega modifcada a " + fechaE);
+                        }
+
+                        cargarCBubi();
+                    } catch (Exception e) {
+                        System.out.println("ERROR al cambiar ubicacion");
                     }
+                } else {
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "Se cancelo el cambio",
+                            "Advertencia",
+                            JOptionPane.WARNING_MESSAGE
+                    );
 
                 }
-                cargarRegistrosUbi();
 
             } else {
                 JOptionPane.showMessageDialog(
@@ -1529,7 +1530,7 @@ public class InterfazPed extends javax.swing.JDialog {
                     JOptionPane.WARNING_MESSAGE
             );
         }
-
+        cargarCBubi();
     }//GEN-LAST:event_BactualizarUActionPerformed
 
     private void tUbiMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tUbiMouseClicked
@@ -1578,12 +1579,53 @@ public class InterfazPed extends javax.swing.JDialog {
         // TODO add your handling code here:
         this.dispose();
     }//GEN-LAST:event_jButton8ActionPerformed
-    private String[] colorInventario(Producto p) {
+
+    private void jButton4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton4MouseClicked
+        try {
+            // TODO add your handling code here:
+            cargarPedidos();
+        } catch (Exception ex) {
+            Logger.getLogger(InterfazPed.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButton4MouseClicked
+
+    private void TextIdPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TextIdPActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_TextIdPActionPerformed
+
+    private void panelesPedidoStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_panelesPedidoStateChanged
+        int ind = panelesPedido.getSelectedIndex();
+        if (ind == 1) {
+            cargarProductoCB();
+
+        }
+    }//GEN-LAST:event_panelesPedidoStateChanged
+
+    private void cantidadSPStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_cantidadSPStateChanged
+        // TODO add your handling code here:
+        int ent = Integer.parseInt(cantidadSP.getValue().toString());
+        if (selecPro != null) {
+            if (ent > selecPro.getCantidadActual()) {
+                Msp.setValue(1);
+                cantidadSP.setModel(Msp);
+            }
+        }
+    }//GEN-LAST:event_cantidadSPStateChanged
+
+    private void panelEAStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_panelEAStateChanged
+        // TODO add your handling code here:
+        //cargar pedidos nuevos para agrgar a comno pedidos
+        if(panelEA.getSelectedIndex()==2){
+            cargarCBubi();
+        }
+        
+    }//GEN-LAST:event_panelEAStateChanged
+    private String[] colorInventario(Producto p, String t) {
         String colores[] = null;
         inventario = cInventario.findInventarioEntities();
         int c = 0;
         for (Inventario inv : inventario) {
-            if (inv.getIdProducto() == p) {
+            if (inv.getIdProducto() == p && inv.getTalla().equals(t)) {
                 colores[c] = inv.getColor();
                 c++;
             }
@@ -1630,7 +1672,7 @@ public class InterfazPed extends javax.swing.JDialog {
             if (ubi) {
                 textInfo.setText("Informacion: Pedido encontrado");
                 int numfilas = mtU.getRowCount();
-                for (int i = 0; i < numfilas; i++) {
+                for (int i = numfilas - 1; i >= 0; i--) {
                     mtU.removeRow(i);
                 }
                 Object[] fila = {pencontrado.getIdPedido(),
@@ -1687,7 +1729,7 @@ public class InterfazPed extends javax.swing.JDialog {
     private void cargarRegistrosUbi() {
         ubicaciones = cUbicacionP.findUbicacionPedidoEntities();
         int numfilas = mtU.getRowCount();
-        for (int i = 0; i < numfilas; i++) {
+        for (int i = numfilas - 1; i >= 0; i--) {
             mtU.removeRow(i);
         }
         for (UbicacionPedido u : ubicaciones) {
@@ -1731,86 +1773,82 @@ public class InterfazPed extends javax.swing.JDialog {
     }
 
     public void registrarPedido() throws NonexistentEntityException, Exception {//agrega a detalle
-        if (clienteCB.getSelectedIndex() != 0 && productoCB.getSelectedIndex() != 0 && fechaEla != null && fechaEntre != null && (Integer) cantidadSP.getValue() != 0 && confirmaFecha) {
+        if (clienteCB.getSelectedIndex() != 0 && productoCB.getSelectedIndex()  >=0 && fechaEla != null && fechaEntre != null && (Integer) cantidadSP.getValue() != 0 && confirmaFecha) {
 
-            if (tallaCB.getSelectedIndex() >= 0) {
+            //  if (tallaCB.getSelectedIndex() >= 0) {
+            Cliente client = clientes.get(clienteCB.getSelectedIndex()-1 );
+            Date fechaActual = new Date();//fecha de generacion de pedido actual
 
-                Cliente client = clientes.get(clienteCB.getSelectedIndex() - 1);
-                Date fechaActual = new Date();//fecha de generacion de pedido actual
+            Producto prod = productos.get(productoCB.getSelectedIndex() );
+            BigInteger cant = new BigInteger(cantidadSP.getValue().toString());
+            costoProductos = (prod.getPrecio()).multiply(new BigDecimal(cant));
 
-                Producto prod = productos.get(productoCB.getSelectedIndex() - 1);
-                BigInteger cant = new BigInteger(cantidadSP.getValue().toString());
-                costoProductos = (prod.getPrecio()).multiply(new BigDecimal(cant));
+            totalMonto = totalMonto.add(costoProductos);
+            System.out.println(costoProductos + " cantidad" + cant + "total:" + totalMonto);
 
-                totalMonto = totalMonto.add(costoProductos);
-                System.out.println(costoProductos + " cantidad" + cant + "total:" + totalMonto);
+            String msj = "Cliente: " + client.getNombre() + " " + client.getApellido() + " " + productoCB.getSelectedItem().toString() + " Costo: $" + costoProductos;
 
-                String talla = tallaCB.getSelectedItem().toString();
-                String color = colorCB.getSelectedItem().toString();
-                String msj = "Cliente: " + client.getNombre() + " " + client.getApellido() + " Poducto: " + prod.getNombre() + "\n"
-                        + " Talla:" + talla + " Color:" + color + " Costo: $" + costoProductos;
+            int resp = JOptionPane.showConfirmDialog(
+                    null,
+                    "¿Agregar al pedido: " + msj + "?",
+                    "Aviso",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+            if (resp == JOptionPane.YES_OPTION) {
+                //verificar si existe talla y color en alamcen
+                /*Inventario reg = existenciaInventario(prod, talla, color);
+                    if (reg != null) {*/
+                
+                //agregar nuevo
+                if (NuevoP == null) {
 
-                int resp = JOptionPane.showConfirmDialog(
-                        null,
-                        "¿Agregar al pedido: " + msj + "?",
-                        "Aviso",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE
-                );
-                if (resp == JOptionPane.YES_OPTION) {
-                    //verificar si existe talla y color en alamcen
-                    Inventario reg = existenciaInventario(talla, color);
-                    if (reg != null) {
+                    Pedido nuevoP = new Pedido();
+                    nuevoP.setIdCliente(client);
+                    nuevoP.setFechaPedido(fechaActual);
+                    nuevoP.setFechaEntregaEstimada(fechaEntre);//FECHA SELECCIONADA EN CALENDARIO
+                    nuevoP.setEstado("pendiente");//para nuevo pedido con minuscula
 
-                        //agregar nuevo
-                        if (NuevoP == null) {
+                    cPedido.create(nuevoP);
+                    NuevoP = nuevoP;
+                    System.out.println("Pedido nuevo registrado" + NuevoP.getIdPedido());
+                }
+                DetallePedido producto = new DetallePedido();
+                producto.setIdPedido(NuevoP);
+                producto.setIdProducto(prod);
+                producto.setCantidad(cant);
+                producto.setColor(inventario_index.get(selecPro).getColor());
+                producto.setTalla(Integer.parseInt(selecPro.getTalla()));
+                cDetalleP.edit(producto);
+                System.out.println("detalle de Producto agregado ");
+                textTotal.setText("Total: $" + totalMonto);
 
-                            Pedido nuevoP = new Pedido();
-                            nuevoP.setIdCliente(client);
-                            nuevoP.setFechaPedido(fechaActual);
-                            nuevoP.setFechaEntregaEstimada(fechaEntre);//FECHA SELECCIONADA EN CALENDARIO
-                            nuevoP.setEstado("pendiente");//para nuevo pedido con minuscula
+                //restar de cantidad en inventario
+                selecPro.setCantidadActual(selecPro.getCantidadActual() - cant.intValue());//contenplar productos futuros a retirar
 
-                            cPedido.create(nuevoP);
-                            NuevoP = nuevoP;
-                            System.out.println("Pedido nuevo registrado" + NuevoP.getIdPedido());
-                        }
-                        DetallePedido producto = new DetallePedido();
-                        producto.setIdPedido(NuevoP);
-                        producto.setIdProducto(prod);
-                        producto.setCantidad(cant);
-                        producto.setColor(color);
-                        producto.setTalla(Integer.parseInt(talla));
-                        cDetalleP.edit(producto);
-                        System.out.println("detalle de Producto agregado ");
-                        textTotal.setText("Total: $" + totalMonto);
-
-                        //restar de cantidad en inventario
-                        reg.setCantidadActual(reg.getCantidadActual() - cant.intValue());//contenplar productos futuros a retirar
-
-                        cInventario.edit(reg);
-                    } else {
+                cInventario.edit(selecPro);
+                /* } else {
                         JOptionPane.showMessageDialog(
                                 null,
                                 "No se encuentra producto en inventario",
                                 "Advertencia",
                                 JOptionPane.WARNING_MESSAGE
                         );
-                    }
-
-                } else {
-                    cargarCB();
-                    System.out.println("Pedido cancelado...");
-                }
+                    }*/
 
             } else {
+                cargarCB();
+                System.out.println("Pedido cancelado...");
+            }
+
+            /* } else {
                 JOptionPane.showMessageDialog(
                         null,
                         "Ingresa una talla para este ipo de producto",
                         "Advertencia",
                         JOptionPane.WARNING_MESSAGE
                 );
-            }
+            }*/
             confirmaFecha = false;
 
         } else {
@@ -1824,10 +1862,10 @@ public class InterfazPed extends javax.swing.JDialog {
         textPrecio.setText("$0");
     }
 
-    private Inventario existenciaInventario(String t, String c) {
+    private Inventario existenciaInventario(Producto p, String t, String c) {
         inventario = cInventario.findInventarioEntities();
         for (Inventario i : inventario) {
-            if (c.equalsIgnoreCase(i.getColor()) && i.getTalla().equals(t)) {
+            if (i.getIdProducto() == p && c.equalsIgnoreCase(i.getColor()) && i.getTalla().equals(t)) {
                 return i;
             }
         }
@@ -1835,10 +1873,13 @@ public class InterfazPed extends javax.swing.JDialog {
     }
 
     private Pedido buscaPedidoTabla(int id) {
-        for (Pedido p : pedidos) {
+        /*for (Pedido p : pedidos) {
             if (id == p.getIdPedido()) {
                 return p;
             }
+        }*/
+        if (cPedido.findPedido(id) != null) {
+            return cPedido.findPedido(id);
         }
         return null;
     }
@@ -1915,7 +1956,6 @@ public class InterfazPed extends javax.swing.JDialog {
     private com.toedter.calendar.JCalendar calendarioSelec;
     private javax.swing.JSpinner cantidadSP;
     private javax.swing.JComboBox<String> clienteCB;
-    private javax.swing.JComboBox<String> colorCB;
     private javax.swing.JTextArea detallesText;
     private javax.swing.JLabel fA;
     private javax.swing.JLabel fE;
@@ -1944,12 +1984,10 @@ public class InterfazPed extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -1960,15 +1998,14 @@ public class InterfazPed extends javax.swing.JDialog {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTabbedPane jTabbedPane2;
+    private javax.swing.JTabbedPane panelEA;
+    private javax.swing.JTabbedPane panelesPedido;
     private javax.swing.JComboBox<String> pedidosUbiCB;
     private javax.swing.JComboBox<String> productoCB;
     private javax.swing.JComboBox<String> proveCB1;
     private javax.swing.JComboBox<String> proveCB2;
     private javax.swing.JTable tPedidos;
     private javax.swing.JTable tUbi;
-    private javax.swing.JComboBox<String> tallaCB;
     private javax.swing.JLabel textFecha;
     private javax.swing.JLabel textFechaAcU;
     private javax.swing.JTextField textIdU;
