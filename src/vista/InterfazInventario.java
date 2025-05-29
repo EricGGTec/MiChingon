@@ -296,8 +296,9 @@ public class InterfazInventario extends javax.swing.JDialog {
         jLabel7 = new javax.swing.JLabel();
 
         EditarPedido.setModal(true);
+        EditarPedido.setPreferredSize(new java.awt.Dimension(430, 350));
         EditarPedido.setResizable(false);
-        EditarPedido.setSize(new java.awt.Dimension(440, 400));
+        EditarPedido.setSize(new java.awt.Dimension(560, 460));
 
         jLabel14.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel14.setText("Identificador Pedido:");
@@ -335,41 +336,32 @@ public class InterfazInventario extends javax.swing.JDialog {
         EditarPedido.getContentPane().setLayout(EditarPedidoLayout);
         EditarPedidoLayout.setHorizontalGroup(
             EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, EditarPedidoLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel15)
-                .addGap(108, 108, 108))
             .addGroup(EditarPedidoLayout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addGroup(EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel16, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel17, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(3, 3, 3)
                 .addGroup(EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(EditarPedidoLayout.createSequentialGroup()
-                        .addGap(43, 43, 43)
-                        .addGroup(EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel16, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel17, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(EditarPedidoLayout.createSequentialGroup()
-                        .addGap(100, 100, 100)
-                        .addComponent(jButton3)))
-                .addGroup(EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(EditarPedidoLayout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addGroup(EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtClientePF, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtPedidoPF, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(EditarPedidoLayout.createSequentialGroup()
-                        .addGap(53, 53, 53)
-                        .addComponent(jButton4))
-                    .addGroup(EditarPedidoLayout.createSequentialGroup()
-                        .addGap(12, 12, 12)
-                        .addComponent(JCalendarF, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(27, Short.MAX_VALUE))
+                    .addComponent(txtClientePF, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtPedidoPF, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel15)
+                    .addComponent(JCalendarF, javax.swing.GroupLayout.PREFERRED_SIZE, 331, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(38, Short.MAX_VALUE))
+            .addGroup(EditarPedidoLayout.createSequentialGroup()
+                .addGap(150, 150, 150)
+                .addComponent(jButton3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton4)
+                .addGap(150, 150, 150))
         );
         EditarPedidoLayout.setVerticalGroup(
             EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(EditarPedidoLayout.createSequentialGroup()
-                .addGap(15, 15, 15)
+                .addGap(16, 16, 16)
                 .addComponent(jLabel15)
-                .addGap(30, 30, 30)
+                .addGap(29, 29, 29)
                 .addGroup(EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel14)
                     .addComponent(txtPedidoPF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -379,13 +371,16 @@ public class InterfazInventario extends javax.swing.JDialog {
                     .addComponent(txtClientePF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(11, 11, 11)
                 .addGroup(EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel16)
-                    .addComponent(JCalendarF, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton3)
-                    .addComponent(jButton4))
-                .addGap(15, 15, 15))
+                    .addGroup(EditarPedidoLayout.createSequentialGroup()
+                        .addComponent(jLabel16)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(EditarPedidoLayout.createSequentialGroup()
+                        .addComponent(JCalendarF, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
+                        .addGroup(EditarPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton3)
+                            .addComponent(jButton4))
+                        .addGap(29, 29, 29))))
         );
 
         AgregarStock.setModal(true);
@@ -1574,12 +1569,6 @@ public class InterfazInventario extends javax.swing.JDialog {
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
         try{
         Producto pe = modTabProducto.getProducto(lproductos.getSelectedRow());
-        inventarios= cInventario.findInventarioEntities();
-        int can=0;
-        for(Inventario inv: inventarios)
-            if(inv.getIdProducto().getIdProducto()==pe.getIdProducto())
-                can++;
-        if(!(can>0)){
         Confirmacion.setVisible(true);
         if(confirmacion){
             int id_e = pe.getIdProducto();
@@ -1599,9 +1588,6 @@ public class InterfazInventario extends javax.swing.JDialog {
             for(Producto pr:productos)
                 productos_s.add(pr);
         }
-        }
-        else
-            JOptionPane.showMessageDialog(this,"Existen productos con esta referencia en inventario, elimine primero en inventario");
         }catch(Exception e){
             JOptionPane.showMessageDialog(this,"Seleccione una fila de la tabla");
         }
@@ -1813,8 +1799,6 @@ public class InterfazInventario extends javax.swing.JDialog {
 
     private void txtClientePFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtClientePFActionPerformed
         // TODO add your handling code here:
-        Pedido pe=cPedido.findPedido(5);
-        cPedido.findPedido(5);
     }//GEN-LAST:event_txtClientePFActionPerformed
 
     /**

@@ -1,4 +1,3 @@
-
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -9,6 +8,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -41,6 +41,9 @@ import javax.persistence.TemporalType;
     @NamedQuery(name = "Producto.findByFechaRegistro", query = "SELECT p FROM Producto p WHERE p.fechaRegistro = :fechaRegistro")})
 public class Producto implements Serializable {
 
+    @OneToMany(mappedBy = "idProducto")
+    private List<DetallePedido> detallePedidoList;
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -67,8 +70,6 @@ public class Producto implements Serializable {
     private Collection<Catalogo> catalogoCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "idProducto")
     private Collection<Inventario> inventarioCollection;
-    @OneToMany(mappedBy = "idProducto")
-    private Collection<DetallePedido> detallePedidoCollection;
 
     public Producto() {
     }
@@ -180,12 +181,12 @@ public class Producto implements Serializable {
         return "modelo.Producto[ idProducto=" + idProducto + " ]";
     }
 
-    public Collection<DetallePedido> getDetallePedidoCollection() {
-        return detallePedidoCollection;
+    public List<DetallePedido> getDetallePedidoList() {
+        return detallePedidoList;
     }
 
-    public void setDetallePedidoCollection(Collection<DetallePedido> detallePedidoCollection) {
-        this.detallePedidoCollection = detallePedidoCollection;
+    public void setDetallePedidoList(List<DetallePedido> detallePedidoList) {
+        this.detallePedidoList = detallePedidoList;
     }
-
+    
 }
