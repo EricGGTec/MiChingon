@@ -1,3 +1,4 @@
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -66,6 +67,8 @@ public class Producto implements Serializable {
     private Collection<Catalogo> catalogoCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "idProducto")
     private Collection<Inventario> inventarioCollection;
+    @OneToMany(mappedBy = "idProducto")
+    private Collection<DetallePedido> detallePedidoCollection;
 
     public Producto() {
     }
@@ -176,5 +179,13 @@ public class Producto implements Serializable {
     public String toString() {
         return "modelo.Producto[ idProducto=" + idProducto + " ]";
     }
-    
+
+    public Collection<DetallePedido> getDetallePedidoCollection() {
+        return detallePedidoCollection;
+    }
+
+    public void setDetallePedidoCollection(Collection<DetallePedido> detallePedidoCollection) {
+        this.detallePedidoCollection = detallePedidoCollection;
+    }
+
 }

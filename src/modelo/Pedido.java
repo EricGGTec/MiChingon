@@ -24,6 +24,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+
 /**
  *
  * @author magal
@@ -38,6 +39,9 @@ import javax.persistence.TemporalType;
     @NamedQuery(name = "Pedido.findByEstado", query = "SELECT p FROM Pedido p WHERE p.estado = :estado"),
     @NamedQuery(name = "Pedido.findByTotal", query = "SELECT p FROM Pedido p WHERE p.total = :total")})
 public class Pedido implements Serializable {
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "idPedido")
+    private Collection<DetallePedido> detallePedidoCollection;
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -168,6 +172,14 @@ public class Pedido implements Serializable {
     @Override
     public String toString() {
         return "modelo.Pedido[ idPedido=" + idPedido + " ]";
+    }
+
+    public Collection<DetallePedido> getDetallePedidoCollection() {
+        return detallePedidoCollection;
+    }
+
+    public void setDetallePedidoCollection(Collection<DetallePedido> detallePedidoCollection) {
+        this.detallePedidoCollection = detallePedidoCollection;
     }
     
 }

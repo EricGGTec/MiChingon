@@ -18,7 +18,7 @@ import modelo.Producto;
 
 /**
  *
- * @author ericg
+ * @author magal
  */
 public class InventarioJpaController implements Serializable {
 

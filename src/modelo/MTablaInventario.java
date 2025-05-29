@@ -14,8 +14,8 @@ import javax.swing.table.AbstractTableModel;
 public class MTablaInventario extends AbstractTableModel{
 
     private ArrayList<DatosTablaInventario> datosInventario;
-    private String encabezados [] = {"Id. Inv.","Producto","Ubicacion","Talla","Color","Cant.","Cant. Min.","Observ."};
-    private Class clasesC [] = {Integer.class,String.class,String.class,String.class,String.class,Integer.class,Integer.class,String.class};
+    private String encabezados [] = {"Id. Inv.","Producto","Ubicacion","Cant.","Cant. Min.","Observ."};
+    private Class clasesC [] = {Integer.class,String.class,String.class,Integer.class,Integer.class,String.class};
     
     public MTablaInventario(ArrayList mtp){
         datosInventario = mtp;
@@ -52,11 +52,9 @@ public class MTablaInventario extends AbstractTableModel{
             case 0: return datosInventario.get(r).getInventario();
             case 1: return datosInventario.get(r).getProducto();
             case 2: return datosInventario.get(r).getUbicacion();
-            case 3: return datosInventario.get(r).getTalla();
-            case 4: return datosInventario.get(r).getColor();
-            case 5: return datosInventario.get(r).getCantidad();
-            case 6: return datosInventario.get(r).getCantidadmi();
-            case 7: return datosInventario.get(r).getObservaciones();
+            case 3: return datosInventario.get(r).getCantidad();
+            case 4: return datosInventario.get(r).getCantidadmi();
+            case 5: return datosInventario.get(r).getObservaciones();
             default: return null;
         }
     }
