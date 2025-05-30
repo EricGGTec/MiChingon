@@ -94,7 +94,7 @@ public class InterfazInventario extends javax.swing.JDialog {
         btnEliminar.setEnabled(false);
         btnEliminarPP.setEnabled(false);
         btnEliminarSP.setEnabled(false);
-        
+        btnEditar.setEnabled(false);
     }
     
     private void cargarProductos(){

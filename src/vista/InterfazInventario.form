@@ -5,9 +5,6 @@
     <Container class="javax.swing.JDialog" name="EditarPedido">
       <Properties>
         <Property name="modal" type="boolean" value="true"/>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[430, 350]"/>
-        </Property>
         <Property name="resizable" type="boolean" value="false"/>
         <Property name="size" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
           <Dimension value="[560, 460]"/>
@@ -849,7 +846,7 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="tabPanel" pref="661" max="32767" attributes="0"/>
+              <Component id="tabPanel" max="32767" attributes="0"/>
               <EmptySpace pref="13" max="32767" attributes="0"/>
           </Group>
           <Group type="102" alignment="0" attributes="0">
