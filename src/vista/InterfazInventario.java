@@ -66,7 +66,7 @@ public class InterfazInventario extends javax.swing.JDialog {
     /**
      * Creates new form InterfazInventario
      */
-    public InterfazInventario(java.awt.Frame parent, boolean modal) {
+    public InterfazInventario(java.awt.Frame parent, boolean modal, String rolUsuario) {
         super(parent, modal);        
         initComponents();
         adn = new AdnDatos();
@@ -81,12 +81,19 @@ public class InterfazInventario extends javax.swing.JDialog {
         lproductos.setModel(modTabProducto);
         btnBuscar.setEnabled(false);
         cargarProductos();
+        if(rolUsuario.equals("Almacenista")) Inicializar();
         
         confirmacion = false;
         
         /*datosPedidos  = new ArrayList<>();
         modTabPedido = new MTablaPedidoInv(datosPedidos);
         lpedidos.setModel(modTabPedido);*/
+        
+    }
+    public void Inicializar(){
+        btnEliminar.setEnabled(false);
+        btnEliminarPP.setEnabled(false);
+        btnEliminarSP.setEnabled(false);
         
     }
     
@@ -886,7 +893,7 @@ public class InterfazInventario extends javax.swing.JDialog {
                                 .addComponent(cbmColumn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(btnBuscar)))))
-                .addContainerGap(12, Short.MAX_VALUE))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
         menuInventarioLayout.setVerticalGroup(
             menuInventarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -974,7 +981,7 @@ public class InterfazInventario extends javax.swing.JDialog {
                             .addComponent(jLabel1)
                             .addGap(27, 27, 27)
                             .addComponent(txtNombre, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(80, Short.MAX_VALUE))
+                .addContainerGap(93, Short.MAX_VALUE))
         );
         menuProductoLayout.setVerticalGroup(
             menuProductoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1083,7 +1090,7 @@ public class InterfazInventario extends javax.swing.JDialog {
                     .addGroup(menuPedidoLayout.createSequentialGroup()
                         .addGap(15, 15, 15)
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 553, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(14, Short.MAX_VALUE))
+                .addContainerGap(21, Short.MAX_VALUE))
         );
         menuPedidoLayout.setVerticalGroup(
             menuPedidoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1187,7 +1194,7 @@ public class InterfazInventario extends javax.swing.JDialog {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, menuStockLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 553, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(23, Short.MAX_VALUE))
+                .addContainerGap(30, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, menuStockLayout.createSequentialGroup()
                 .addGroup(menuStockLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(menuStockLayout.createSequentialGroup()
@@ -1218,7 +1225,7 @@ public class InterfazInventario extends javax.swing.JDialog {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, menuStockLayout.createSequentialGroup()
                         .addComponent(jLabel12)
                         .addGap(12, 12, 12)))
-                .addContainerGap(23, Short.MAX_VALUE))
+                .addContainerGap(29, Short.MAX_VALUE))
         );
         menuStockLayout.setVerticalGroup(
             menuStockLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1259,8 +1266,8 @@ public class InterfazInventario extends javax.swing.JDialog {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(tabPanel)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(tabPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 661, Short.MAX_VALUE)
+                .addContainerGap(13, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addGap(273, 273, 273)
                 .addComponent(jLabel7)
@@ -1831,7 +1838,7 @@ public class InterfazInventario extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                InterfazInventario dialog = new InterfazInventario(new javax.swing.JFrame(), true);
+                InterfazInventario dialog = new InterfazInventario(new javax.swing.JFrame(), true, "");
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
