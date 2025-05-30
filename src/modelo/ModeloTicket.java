@@ -92,14 +92,14 @@ public class ModeloTicket {
                 + "---------------------------------------------------------------\n"
                 + nombrePrecio
                 + "---------------------------------------------------------------\n"
-                + "Total $                                                      " + total + "\n"
+                + "Total $                                                    " + total + "\n"
                 + tiposDePago
-                + "El cambio es:                                                " + cambio + "\n"
+                + "El cambio es:                                               " + cambio + "\n"
                 + "---------------------------------------------------------------\n"
                 + "Numero de Items:                                             " + numItems + "\n"
                 + "---------------------------------------------------------------\n"
-                + "                                                             Monto:\n"
-                + "                                                                 " + total + "\n"
+                + "                                                           Monto:\n"
+                + "                                                              " + total + "\n"
                 + "---------------------------------------------------------------\n"
                 + "                 Gracias por su Compra.\n"
                 + "                Solo cambios con ticket.\n"

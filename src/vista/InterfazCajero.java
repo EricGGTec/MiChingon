@@ -12,6 +12,7 @@ import java.io.IOException;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import control.AdmDatos;
 import control.DetallePedidoJpaController;
+import control.PedidoJpaController;
 import control.ProductoJpaController;
 import control.TrabajadorJpaController;
 import java.awt.CardLayout;
@@ -22,6 +23,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -39,6 +41,7 @@ import modelo.DetallePedido;
 import modelo.MTablaRetiro;
 import modelo.MTablaVenta;
 import modelo.ModeloTicket;
+import modelo.Pedido;
 import modelo.Producto;
 import modelo.Trabajador;
 
@@ -48,11 +51,9 @@ import modelo.Trabajador;
  */
 public class InterfazCajero extends javax.swing.JDialog {
 
-    private DetallePedido pedido;
-    private List<DetallePedido> pedidos;
+    private DetallePedido detallePedido;
+    private List<DetallePedido> detallePedidos;
     private DetallePedidoJpaController cDetallePedido;
-    private Producto producto;
-    private List<Producto> productos;
     private List<DetallePedido> productosComprados = new ArrayList<>();
     private ProductoJpaController cProducto;
     private ArrayList<DatosTablaVenta> datosVentas = new ArrayList<>();
@@ -74,6 +75,7 @@ public class InterfazCajero extends javax.swing.JDialog {
     private List<Trabajador> trabajadores;
     private TrabajadorJpaController cTrabajador;
     private boolean autorizado = false;
+    private int aux = 0;
 
     /**
      * Creates new form InterfazCajero
@@ -82,10 +84,9 @@ public class InterfazCajero extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
         cProducto = new ProductoJpaController(AdmDatos.getEntityManagerFactory());
-        productos = cProducto.findProductoEntities();
+        //productos = cProducto.findProductoEntities();
         cDetallePedido = new DetallePedidoJpaController(AdmDatos.getEntityManagerFactory());
-        pedidos = cDetallePedido.findDetallePedidoEntities();
-        
+        detallePedidos = cDetallePedido.findDetallePedidoEntities();
         nombreCajero = usuarioElegido;
         cTrabajador = new TrabajadorJpaController(AdmDatos.getEntityManagerFactory());
         trabajadores = cTrabajador.findTrabajadorEntities();
@@ -792,11 +793,21 @@ public class InterfazCajero extends javax.swing.JDialog {
 
     public void asignarPago(BigDecimal cantidad, String tipoPago) {
         switch (tipoPago) {
-            case "Efectivo": efectivo = efectivo.add(cantidad); break;
-            case "Cupon": ; cupon = cupon.add(cantidad); break;
-            case "Credito": credito = credito.add(cantidad); break;
-            case "Debito": debito = debito.add(cantidad); break;
-            case "Vale": vale = vale.add(cantidad); break;
+            case "Efectivo":
+                efectivo = efectivo.add(cantidad);
+                break;
+            case "Cupon": ;
+                cupon = cupon.add(cantidad);
+                break;
+            case "Credito":
+                credito = credito.add(cantidad);
+                break;
+            case "Debito":
+                debito = debito.add(cantidad);
+                break;
+            case "Vale":
+                vale = vale.add(cantidad);
+                break;
         }
     }
 
@@ -1009,7 +1020,7 @@ public class InterfazCajero extends javax.swing.JDialog {
 
         // 3. Actualizar la tabla
         tabla.setModel(modelo);
-       
+
     }
 
     public void reescribirArchivoDesdeModelo(MTablaRetiro modelo) {
@@ -1029,24 +1040,27 @@ public class InterfazCajero extends javax.swing.JDialog {
 
     private void TextProductoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TextProductoActionPerformed
         // TODO add your handling code here:
-        pedidos = cDetallePedido.findDetallePedidoEntities();
+        detallePedidos = cDetallePedido.findDetallePedidoEntities();
         String entrada = TextProducto.getText().trim();
         if (!entrada.isEmpty()) {
             try {
                 int productoIngresado = Integer.parseInt(entrada);
                 boolean encontrado = false;
-                for (DetallePedido dp : pedidos) {
-                    if (dp.getIdProducto().getIdProducto() == productoIngresado) {
+                for (DetallePedido dp : detallePedidos) {
+                    BigInteger b = BigInteger.valueOf(aux);
+                    if (dp.getIdProducto().getIdProducto() == productoIngresado && dp.getCantidad().compareTo(b) > 0
+                            && !dp.getIdPedido().getEstado().equals("entregado")) {
                         DatosTablaVenta dtv = new DatosTablaVenta(dp.getIdProducto());
                         datosVentas.add(dtv);
                         subTotal = subTotal.add(dtv.getSubtotal());
                         encontrado = true;
                         productosComprados.add(dp);
-                        break; // Producto encontrado, salimos del ciclo
+                        aux++;
+                        break; // Producto encontrado, salimos del ciclo                        
                     }
                 }
-                if (!encontrado) {
-                    JOptionPane.showMessageDialog(null, "Producto no registrado.");
+                if (!encontrado){
+                    JOptionPane.showMessageDialog(null, "Pedido no registrado.");
                 }
                 TextProducto.setText("");
                 modTabVenta = new MTablaVenta(datosVentas);
@@ -1056,7 +1070,6 @@ public class InterfazCajero extends javax.swing.JDialog {
                 JOptionPane.showMessageDialog(null, "ID de producto inválido.");
             }
         }
-
     }//GEN-LAST:event_TextProductoActionPerformed
 
     private void BotonSalirInicioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BotonSalirInicioActionPerformed
@@ -1134,8 +1147,10 @@ public class InterfazCajero extends javax.swing.JDialog {
         boolean valido = false;
         List<Integer> datosRetiro = new ArrayList<>();
         valido = AgregarTotalRetiro();
-        if (!valido) return;
-        
+        if (!valido) {
+            return;
+        }
+
         datosRetiro.add(Integer.parseInt(TMil.getText()));
         datosRetiro.add(Integer.parseInt(TQuinientos.getText()));
         datosRetiro.add(Integer.parseInt(TDoscientos.getText()));
@@ -1143,7 +1158,7 @@ public class InterfazCajero extends javax.swing.JDialog {
         datosRetiro.add(Integer.parseInt(TCincuenta.getText()));
         datosRetiro.add(Integer.parseInt(TVeinte.getText()));
         datosRetiro.add(RetirosAux);
-        System.out.println(RetirosAux+"");
+        System.out.println(RetirosAux + "");
         limpiarRetiro();
         new PanelRetiro(null, true, datosRetiro, nombreCajero).setVisible(true);
         Retiros += RetirosAux;
@@ -1161,7 +1176,7 @@ public class InterfazCajero extends javax.swing.JDialog {
         if (!validarGerente()) {
             return;
         }
-        
+
         // 4. Confirmación antes de eliminar
         int confirmacion = JOptionPane.showConfirmDialog(null, "¿Está seguro que desea eliminar este retiro?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirmacion != JOptionPane.YES_OPTION) {
@@ -1198,7 +1213,7 @@ public class InterfazCajero extends javax.swing.JDialog {
         }
         // 2. Validar contraseña
         JPasswordField campoContrasena = new JPasswordField();
-        int opcion = JOptionPane.showConfirmDialog(null, campoContrasena, "Ingrese su contraseña", JOptionPane.OK_CANCEL_OPTION);
+        int opcion = JOptionPane.showConfirmDialog(null, campoContrasena, "Contraseña Gerente", JOptionPane.OK_CANCEL_OPTION);
 
         if (opcion != JOptionPane.OK_OPTION) {
             return validar;
@@ -1212,7 +1227,7 @@ public class InterfazCajero extends javax.swing.JDialog {
         validar = true;
         return validar;
     }
-    
+
     private void ModificarRetiroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ModificarRetiroActionPerformed
         // 1. Validar que se haya seleccionado una fila
         int filaSeleccionada = TablaRetiros.getSelectedRow();
@@ -1223,8 +1238,10 @@ public class InterfazCajero extends javax.swing.JDialog {
         // 2. Obtener el retiro seleccionado
         MTablaRetiro modelo = (MTablaRetiro) TablaRetiros.getModel();
         DatosTablaRetiro retiroSeleccionado = modelo.getRetiroEnFila(filaSeleccionada);
-        
-        if (!validarGerente()) return;
+
+        if (!validarGerente()) {
+            return;
+        }
         DatosTablaRetiro original = modelo.getRetiroEnFila(filaSeleccionada);
         // 3. Abrir el panel de edición con los datos
         InterfazEditarRetiro panel = new InterfazEditarRetiro(null, true, retiroSeleccionado);
@@ -1236,7 +1253,7 @@ public class InterfazCajero extends javax.swing.JDialog {
             reescribirArchivoDesdeModelo(modelo);
             TablaRetiros.setModel(modelo);
         }
-        
+
     }//GEN-LAST:event_ModificarRetiroActionPerformed
 
     private void TMilFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_TMilFocusLost
@@ -1262,7 +1279,7 @@ public class InterfazCajero extends javax.swing.JDialog {
     private void TVeinteFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_TVeinteFocusLost
         calcularTotalRetiro();
     }//GEN-LAST:event_TVeinteFocusLost
-    
+
     public boolean AgregarTotalRetiro() {
         boolean validar = false;
         BigDecimal NuevoRetiro = new BigDecimal(RetirosAux);

@@ -46,6 +46,7 @@ public class PanelRetiro extends javax.swing.JDialog {
                 + "-----------------------------------------------\n"
                 + "Total: \t$ "+ total);
         guardarRetiro(new Date(),total, cajero);
+        AreaDatos.setEnabled(false);
         
     }
 

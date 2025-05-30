@@ -46,10 +46,11 @@ private String usuarioElegido;
         cTrabajador = new TrabajadorJpaController(AdmDatos.getEntityManagerFactory());
         trabajadores = cTrabajador.findTrabajadorEntities();
     }
-    public void AbrirInterfazAlmacenista(){
+    
+    public void AbrirInterfazAlmacenista(String rolUsuario){
        // Cerrar ventana login
         setVisible(false);
-        InterfazInventario inventario = new InterfazInventario(null, true); // o false si no quieres que sea modal
+        InterfazInventario inventario = new InterfazInventario(null, true, rolUsuario); // o false si no quieres que sea modal
         inventario.setLocationRelativeTo(null);
         inventario.setVisible(true);
         // Cuando cierras inventario puedes volver a mostrar login si quieres
@@ -71,7 +72,7 @@ private String usuarioElegido;
     public void AbrirInterfazRecepcionista(){
        // Cerrar ventana login
         setVisible(false);
-        //new InterfazPed(null, true, usuarioElegido).setVisible(true); // o false si no quieres que sea modal
+        new InterfazPed(null, true).setVisible(true); // o false si no quieres que sea modal
         // Cuando cierras inventario puedes volver a mostrar login si quieres
         setVisible(true);    
     }
@@ -199,8 +200,9 @@ private String usuarioElegido;
             if(dTrabajador.getUsuario().equals(usuario) && dTrabajador.getPassword().equals(password)){
                 encontrado = true;
                 usuarioElegido = dTrabajador.getNombre();
+                String rol = dTrabajador.getRol();
                 switch(dTrabajador.getRol()){
-                    case "Almacenista": AbrirInterfazAlmacenista(); break;
+                    case "Almacenista": AbrirInterfazAlmacenista(rol); break;
                     case "Cajero": AbrirInterfazCajero(); break;
                     case "Gerente":  AbrirInterfazGerente(); break;
                     case "Recepcionista": AbrirInterfazRecepcionista(); break;

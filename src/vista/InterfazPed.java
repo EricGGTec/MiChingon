@@ -12,6 +12,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import modelo.Pedido;
+import modelo.Trabajador;
 
 /**
  *
@@ -37,9 +38,9 @@ public class InterfazPed extends javax.swing.JDialog {
         emf = Persistence.createEntityManagerFactory("MiChingonPU");
         cPedido = new PedidoJpaController(emf);
         mt = new DefaultTableModel(new Object[]{"Id Pedido", "Cliente", "Fecha", "Estado"}, 0);
-       tipoProductoCB.setModel(new DefaultComboBoxModel<>(tiposProducto));
+        tipoProductoCB.setModel(new DefaultComboBoxModel<>(tiposProducto));
         pedidos = cPedido.findPedidoEntities();
-tallaText.setEnabled(false);
+        tallaText.setEnabled(false);
         cargarPedidos();
     }
 
