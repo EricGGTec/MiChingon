@@ -303,6 +303,7 @@ public class InterfazInventario extends javax.swing.JDialog {
         jLabel7 = new javax.swing.JLabel();
 
         EditarPedido.setModal(true);
+        EditarPedido.setPreferredSize(new java.awt.Dimension(430, 350));
         EditarPedido.setResizable(false);
         EditarPedido.setSize(new java.awt.Dimension(560, 460));
 

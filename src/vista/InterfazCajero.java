@@ -1358,6 +1358,8 @@ public class InterfazCajero extends javax.swing.JDialog {
             System.err.println("Failed to initialize LaF");
         }
 
+        
+        
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
