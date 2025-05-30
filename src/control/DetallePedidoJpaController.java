@@ -19,7 +19,7 @@ import modelo.Producto;
 
 /**
  *
- * @author magal
+ * @author Hp EliteBook
  */
 public class DetallePedidoJpaController implements Serializable {
 
@@ -53,7 +53,7 @@ public class DetallePedidoJpaController implements Serializable {
                 idPedido = em.merge(idPedido);
             }
             if (idProducto != null) {
-                idProducto.getDetallePedidoCollection().add(detallePedido);
+                idProducto.getDetallePedidoList().add(detallePedido);
                 idProducto = em.merge(idProducto);
             }
             em.getTransaction().commit();
@@ -92,11 +92,11 @@ public class DetallePedidoJpaController implements Serializable {
                 idPedidoNew = em.merge(idPedidoNew);
             }
             if (idProductoOld != null && !idProductoOld.equals(idProductoNew)) {
-                idProductoOld.getDetallePedidoCollection().remove(detallePedido);
+                idProductoOld.getDetallePedidoList().remove(detallePedido);
                 idProductoOld = em.merge(idProductoOld);
             }
             if (idProductoNew != null && !idProductoNew.equals(idProductoOld)) {
-                idProductoNew.getDetallePedidoCollection().add(detallePedido);
+                idProductoNew.getDetallePedidoList().add(detallePedido);
                 idProductoNew = em.merge(idProductoNew);
             }
             em.getTransaction().commit();
@@ -135,7 +135,7 @@ public class DetallePedidoJpaController implements Serializable {
             }
             Producto idProducto = detallePedido.getIdProducto();
             if (idProducto != null) {
-                idProducto.getDetallePedidoCollection().remove(detallePedido);
+                idProducto.getDetallePedidoList().remove(detallePedido);
                 idProducto = em.merge(idProducto);
             }
             em.remove(detallePedido);

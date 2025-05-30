@@ -4,6 +4,7 @@
  */
 package vista;
 
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import control.AdmDatos;
 import control.TrabajadorJpaController;
 import java.awt.Image;
@@ -44,28 +45,21 @@ private String usuarioElegido;
         Logo.setIcon(iconMiniatura);
         cTrabajador = new TrabajadorJpaController(AdmDatos.getEntityManagerFactory());
         trabajadores = cTrabajador.findTrabajadorEntities();
-        cargarTrabajadores();
     }
-    public void cargarTrabajadores(){
-        
-    }
-    public void AbrirInterfazAlmacenista(){
+    
+    public void AbrirInterfazAlmacenista(String rolUsuario){
        // Cerrar ventana login
         setVisible(false);
-
-        InterfazInventario inventario = new InterfazInventario(null, true); // o false si no quieres que sea modal
+        InterfazInventario inventario = new InterfazInventario(null, true, rolUsuario); // o false si no quieres que sea modal
         inventario.setLocationRelativeTo(null);
         inventario.setVisible(true);
-
         // Cuando cierras inventario puedes volver a mostrar login si quieres
         setVisible(true);
     }
     public void AbrirInterfazCajero(){
        // Cerrar ventana login
         setVisible(false);
-
-        new InterfazCajero(null, true).setVisible(true); // o false si no quieres que sea modal
-
+        new InterfazCajero(null, true, usuarioElegido).setVisible(true); // o false si no quieres que sea modal
         // Cuando cierras inventario puedes volver a mostrar login si quieres
         setVisible(true);
 
@@ -78,7 +72,7 @@ private String usuarioElegido;
     public void AbrirInterfazRecepcionista(){
        // Cerrar ventana login
         setVisible(false);
-        //new InterfazPed(null, true, usuarioElegido).setVisible(true); // o false si no quieres que sea modal
+        new InterfazPed(null, true).setVisible(true); // o false si no quieres que sea modal
         // Cuando cierras inventario puedes volver a mostrar login si quieres
         setVisible(true);    
     }
@@ -206,8 +200,9 @@ private String usuarioElegido;
             if(dTrabajador.getUsuario().equals(usuario) && dTrabajador.getPassword().equals(password)){
                 encontrado = true;
                 usuarioElegido = dTrabajador.getNombre();
+                String rol = dTrabajador.getRol();
                 switch(dTrabajador.getRol()){
-                    case "Almacenista": AbrirInterfazAlmacenista(); break;
+                    case "Almacenista": AbrirInterfazAlmacenista(rol); break;
                     case "Cajero": AbrirInterfazCajero(); break;
                     case "Gerente":  AbrirInterfazGerente(); break;
                     case "Recepcionista": AbrirInterfazRecepcionista(); break;
@@ -258,7 +253,11 @@ private String usuarioElegido;
             java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
+        try {
+            FlatMacDarkLaf.setup();
+        } catch( Exception ex ) {
+            System.err.println( "Failed to initialize LaF" );
+        }
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
